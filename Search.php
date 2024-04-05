@@ -1,20 +1,21 @@
 <?php
 
 namespace Search;
-
+use Src\Request;
 class Search
 {
-    public function filterModels($employees, string $query): array
+    public function search(Request $request, $model)
     {
-        $parts = preg_split('/\s+/', $query);
+        $query = $request->query('query');
+        $parts = explode(' ', $query);
         $surname = $parts[0] ?? '';
         $name = $parts[1] ?? '';
         $patronymic = $parts[2] ?? '';
 
-        return array_filter($employees, function ($employee) use ($surname, $name, $patronymic) {
-            return preg_match("/$surname/", $employee->surname)
-                && preg_match("/$name/", $employee->name)
-                && preg_match("/$patronymic/", $employee->patronymic);
-        });
+        return $model->where(function($query) use ($surname, $name, $patronymic) {
+            $query->where('surname', 'like', '%'.$surname.'%')
+                ->where('name', 'like', '%'.$name.'%')
+                ->where('patronymic', 'like', '%'.$patronymic.'%');
+        })->get();
     }
 }
